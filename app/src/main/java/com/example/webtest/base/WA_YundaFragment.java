@@ -63,10 +63,12 @@ public class WA_YundaFragment extends WA_BaseFragment
 	protected int shangjiaIndex;
 	protected String shangjiaRecordStr;
     private boolean XIAJIA_STOP = false;
+	private int SWITCH_DEFAULT_METHOD;
+	private boolean FIRST_SHANGJIA = true;
+	private boolean SHANGJIA_STOP = false;
 
 
-
-    protected enum SearchType
+	protected enum SearchType
 	{
 		All, Shop, Mall
 	}
@@ -513,14 +515,8 @@ public class WA_YundaFragment extends WA_BaseFragment
 		@JavascriptInterface
 		public void xiajiaContinueOrNot()
 		{
-            if (!XIAJIA_STOP) {
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-						handlerJs("selectXiajia(\"" + shangjiaRecordStr + "\");", 5000);
-                    }
-                });
-            }
+			SWITCH_DEFAULT_METHOD = Constant.XIAJIA_CONTINUE_OR_NOT;
+
 		}
 
 
@@ -535,6 +531,13 @@ public class WA_YundaFragment extends WA_BaseFragment
 		public void xiajiaRecordOccur()
 		{
             XIAJIA_STOP = true;
+		}
+
+
+		@JavascriptInterface
+		public void shangjiaStop()
+		{
+            SHANGJIA_STOP = true;
 		}
 
 		@JavascriptInterface
@@ -788,15 +791,8 @@ public class WA_YundaFragment extends WA_BaseFragment
 
 
 		if (listWeb instanceof MyWebView) {
+			SWITCH_DEFAULT_METHOD = Constant.DEFAULT_LOAD_COMPLETE;
 			listWeb.loadUrl(Constant.URL);
-		} else {
-			handler.postDelayed(new Runnable() {
-				@Override
-				public void run() {
-					listWeb.loadUrl(Constant.CANGKU_URL);
-				}
-			}, 2000);
-
 		}
 		listWeb.setWebViewClient(new WA_MainFragment.MyListWebViewClient());
 		mLocalMethod = new WA_YundaFragment.LocalMethod(getActivity(), parameter);
@@ -818,17 +814,22 @@ public class WA_YundaFragment extends WA_BaseFragment
 				switch (SWITCH_UPLOAD_METHOD) {
 					case Constant.SHANGJIA_CONTINUE:
 						SWITCH_UPLOAD_METHOD = -1;
-
-						getActivity().runOnUiThread(new Runnable() {
-							@Override
-							public void run() {
-								handlerJs("clickAllSelect(\"" + shangjiaRecordStr + "\");",2000, wv_upload);
-							}
-						});
+						if (!SHANGJIA_STOP){
+							getActivity().runOnUiThread(new Runnable() {
+								@Override
+								public void run() {
+									handlerJs("clickAllSelect(\"" + shangjiaRecordStr + "\");", 2000, wv_upload);
+								}
+							});
+						}
 						break;
+
+
+
+						//下面两方法作废
 					case Constant.EDIT_DETAIL:
 						SWITCH_UPLOAD_METHOD = Constant.EDIT_UPLOAD_COMPLETE;
-						handlerJs("shangjiaNow();", 1000,wv_upload);
+						handlerJs("shangjiaNow();", 1000, wv_upload);
 						break;
 					case Constant.EDIT_UPLOAD_COMPLETE:
 						shangjiaIndex++;
@@ -840,6 +841,41 @@ public class WA_YundaFragment extends WA_BaseFragment
 						}
 						break;
 				}
+			} else {
+				switch (SWITCH_DEFAULT_METHOD) {
+					case Constant.DEFAULT_LOAD_COMPLETE:
+						getActivity().runOnUiThread(new Runnable() {
+							@Override
+							public void run() {
+								wv_upload.loadUrl(Constant.CANGKU_URL);
+							}
+						});
+						break;
+					case Constant.XIAJIA_CONTINUE_OR_NOT:
+						if (FIRST_SHANGJIA) {
+							FIRST_SHANGJIA = false;
+							getActivity().runOnUiThread(new Runnable() {
+								@Override
+								public void run() {
+									wv_upload.loadUrl(Constant.CANGKU_URL);
+									handlerJs("clickAllSelect(\"" + shangjiaRecordStr + "\");", 7000, wv_upload);
+								}
+							});
+						}
+
+						if (!XIAJIA_STOP) {
+							getActivity().runOnUiThread(new Runnable() {
+								@Override
+								public void run() {
+									handlerJs("selectXiajia(\"" + shangjiaRecordStr + "\");", 3000);
+								}
+							});
+
+						}
+						break;
+				}
+				SWITCH_DEFAULT_METHOD = -1;
+
 			}
 
 			super.onPageFinished(view, url);

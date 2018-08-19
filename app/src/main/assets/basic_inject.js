@@ -68,6 +68,9 @@ function clickAllSelect(shangjiaRecord){
     var allSelector = document.getElementsByClassName("all-selector");
     var kbutton = document.getElementsByClassName("kbutton");
     var selectors = document.getElementsByClassName("selector");
+    if(selectors.length<1){
+    localMethod.shangjiaStop();
+    }
 
     for(var j=0;j<selectors.length;j++){
         var itemids = selectors[j].getAttribute("itemids");
@@ -84,14 +87,13 @@ function clickAllSelect(shangjiaRecord){
 
 function xiajia(){
     var kbutton = document.getElementsByClassName("kbutton");
-
+    localMethod.xiajiaContinueOrNot();
     for(var i=0;i<kbutton.length;i++){
         if(kbutton[i].innerText=="下 架"){
             kbutton[i].click();
             break;
         }
     }
-    localMethod.xiajiaContinueOrNot();
 
 }
 

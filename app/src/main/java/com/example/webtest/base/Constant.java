@@ -10,6 +10,9 @@ public interface Constant {
     int EDIT_DETAIL = 0x1;
     int EDIT_UPLOAD_COMPLETE = 0x2;
     int SHANGJIA_CONTINUE = 0x3;
+    int DEFAULT_LOAD_COMPLETE = 0x4;
+    int XIAJIA_CONTINUE_OR_NOT = 0x5;
+
 
 
 //    String URL = "https://pub.alimama.com/promo/item/channel/index.htm?spm=a219t.7900221/1.1998910419.d07bd19c4.2a8f75a5Zm3POv&channel=nzjh";
