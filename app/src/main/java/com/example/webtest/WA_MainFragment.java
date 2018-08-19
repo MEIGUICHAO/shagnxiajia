@@ -158,25 +158,29 @@ public class WA_MainFragment extends WA_YundaFragment implements View.OnClickLis
 	public void onClick(View v) {
 		switch (v.getId()) {
 			case R.id.btn_biao1:
-				String str = "575292124604###575292616306";
-				handlerJs("selectXiajia(\"" + str + "\");");
+				handlerJs("selectXiajia(\"" + shangjiaRecordStr + "\");");
 
 				break;
 			case R.id.btn_check:
-				handlerJs("xiajia();");
+				handlerJs("shangjiaClick();",wv_upload);
 				break;
 			case R.id.btn_refresh:
 
-				listWeb.loadUrl(Constant.URL);
+				listWeb.reload();
+				handler.postDelayed(new Runnable() {
+					@Override
+					public void run() {
+						wv_upload.reload();
+					}
+				}, 2000);
 
-//				String url = listWeb.getUrl() + "&userType=0&jpmj=1&startBiz30day=200&startPrice=0&endPrice=100&level=1";
-//				loadUrl(url);
+
 				break;
 			case R.id.btn_gosearch:
 
-				handlerJs("shangjiaNow();", wv_upload);
+				handlerJs("clickAllSelect(\"" + shangjiaRecordStr + "\");", wv_upload);
+//				handlerJs("shangjiaNow();", wv_upload);
 
-//				handlerJs("tblmShopList();");
 				break;
 		}
 

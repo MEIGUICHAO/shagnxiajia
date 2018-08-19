@@ -49,15 +49,60 @@ function selectXiajia(shangjiaRecord){
         } else {
             xiajiaStr = xiajiaStr + "###" +itemids+"@@@"+icat;
         }
+
+        if(shangjiaRecord.indexOf(itemids) == -1){
+            selectors[j].click();
+        } else {
+            localMethod.xiajiaRecordOccur();
+        }
     }
+    xiajia();
     localMethod.xiaJiaRecord(xiajiaStr+"");
 }
 
+
+
+
+function clickAllSelect(shangjiaRecord){
+    localMethod.JI_LOG("!!!!~~~~~~~~~");
+    var allSelector = document.getElementsByClassName("all-selector");
+    var kbutton = document.getElementsByClassName("kbutton");
+    var selectors = document.getElementsByClassName("selector");
+
+    for(var j=0;j<selectors.length;j++){
+        var itemids = selectors[j].getAttribute("itemids");
+        shangjiaRecord = shangjiaRecord +"###" + itemids;
+    }
+    localMethod.JI_LOG("shangjiaRecord!!!!~~~~~~~~~"+shangjiaRecord);
+    localMethod.shangjiaItemRecord(shangjiaRecord);
+    allSelector[0].click();
+    localMethod.JI_LOG("~~~~~~~~~!!!!");
+    shangjiaClick();
+}
+
+
+
 function xiajia(){
     var kbutton = document.getElementsByClassName("kbutton");
-    localMethod.JI_LOG("click!!!!!!"+kbutton.length);
-    kbutton[6].click();
-    localMethod.JI_LOG("click!!!!!!");
+
+    for(var i=0;i<kbutton.length;i++){
+        if(kbutton[i].innerText=="下 架"){
+            kbutton[i].click();
+            break;
+        }
+    }
+    localMethod.xiajiaContinueOrNot();
+
+}
+
+function shangjiaClick(){
+    var kbutton = document.getElementsByClassName("kbutton");
+    for(var i=0;i<kbutton.length;i++){
+        if(kbutton[i].innerText=="上 架"){
+            kbutton[i].click();
+            break;
+        }
+    }
 }
 
 function goIndexPage(len,index){

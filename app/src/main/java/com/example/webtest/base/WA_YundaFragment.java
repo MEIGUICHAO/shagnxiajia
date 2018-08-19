@@ -58,11 +58,15 @@ public class WA_YundaFragment extends WA_BaseFragment
 	protected WA_Parameters parameter;
 	protected String injectJS;
 	protected int templeIndex;
+	protected int SWITCH_UPLOAD_METHOD = -1;
+	protected ArrayList<String> xiajiaRecordList;
+	protected int shangjiaIndex;
+	protected String shangjiaRecordStr;
+    private boolean XIAJIA_STOP = false;
 
 
 
-
-	protected enum SearchType
+    protected enum SearchType
 	{
 		All, Shop, Mall
 	}
@@ -488,34 +492,56 @@ public class WA_YundaFragment extends WA_BaseFragment
 
 		}
 
-
+//TODO
 		@JavascriptInterface
 		public void xiaJiaRecord(String xiajiaRecord)
 		{
-			LogUtil.e(xiajiaRecord);
+			if (null == xiajiaRecordList) {
+				xiajiaRecordList = new ArrayList<String>();
+				shangjiaIndex = 0;
+			}
 			final String[] split = xiajiaRecord.split("###");
-			String itemId = split[0];
-			final String url = Constant.uploadUrl_CATID + itemId.split("@@@")[1] + Constant.uploadUrl_ITEMID + itemId.split("@@@")[0];
-			LogUtil.e(url);
-
-			getActivity().runOnUiThread(new Runnable() {
-				@Override
-				public void run() {
-					wv_upload.loadUrl(url);
-				}
-			});
+			for (int i = 0; i < split.length; i++) {
+				xiajiaRecordList.add(split[i]);
+			}
+			goEditDetailsUrl();
 
 		}
 
 
 
 		@JavascriptInterface
+		public void xiajiaContinueOrNot()
+		{
+            if (!XIAJIA_STOP) {
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+						handlerJs("selectXiajia(\"" + shangjiaRecordStr + "\");", 5000);
+                    }
+                });
+            }
+		}
+
+
+		@JavascriptInterface
+		public void shangjiaItemRecord(String record)
+		{
+			shangjiaRecordStr = record;
+			SWITCH_UPLOAD_METHOD = Constant.SHANGJIA_CONTINUE;
+		}
+
+		@JavascriptInterface
+		public void xiajiaRecordOccur()
+		{
+            XIAJIA_STOP = true;
+		}
+
+		@JavascriptInterface
 		public void xiajiaClick()
 		{
 			LogUtil.e("JI_LOG:localClick!!!!!!");
 			handlerJs("xiajia();");
-
-
 		}
 
 
@@ -565,6 +591,20 @@ public class WA_YundaFragment extends WA_BaseFragment
 			LogUtil.e("------------getTargetIndex------------");
 			handlerJs("operaSearch();");
 		}
+	}
+
+	private void goEditDetailsUrl() {
+//		String itemId = xiajiaRecordList.get(shangjiaIndex);
+//		shangjiaRecordStr = shangjiaRecordStr+"###"+itemId.split("@@@")[0];
+//		final String url = Constant.uploadUrl_CATID + itemId.split("@@@")[1] + Constant.uploadUrl_ITEMID + itemId.split("@@@")[0];
+//
+//		getActivity().runOnUiThread(new Runnable() {
+//            @Override
+//            public void run() {
+//                SWITCH_UPLOAD_METHOD = Constant.EDIT_DETAIL;
+//                wv_upload.loadUrl(url);
+//            }
+//        });
 	}
 
 	public int getWordCount(String s)
@@ -685,7 +725,7 @@ public class WA_YundaFragment extends WA_BaseFragment
 	}
 
 
-	public void initWebview(WebView listWeb) {
+	public void initWebview(final WebView listWeb) {
 
 		WebSettings webSetting = listWeb.getSettings();
 
@@ -749,6 +789,14 @@ public class WA_YundaFragment extends WA_BaseFragment
 
 		if (listWeb instanceof MyWebView) {
 			listWeb.loadUrl(Constant.URL);
+		} else {
+			handler.postDelayed(new Runnable() {
+				@Override
+				public void run() {
+					listWeb.loadUrl(Constant.CANGKU_URL);
+				}
+			}, 2000);
+
 		}
 		listWeb.setWebViewClient(new WA_MainFragment.MyListWebViewClient());
 		mLocalMethod = new WA_YundaFragment.LocalMethod(getActivity(), parameter);
@@ -765,6 +813,34 @@ public class WA_YundaFragment extends WA_BaseFragment
 		public void onPageFinished(WebView view, String url)
 		{
 			view.loadUrl("javascript:" + injectJS);
+			if (view == wv_upload) {
+				LogUtil.e("wv_upload!!!!!!!!!!~~~~~~~");
+				switch (SWITCH_UPLOAD_METHOD) {
+					case Constant.SHANGJIA_CONTINUE:
+						SWITCH_UPLOAD_METHOD = -1;
+
+						getActivity().runOnUiThread(new Runnable() {
+							@Override
+							public void run() {
+								handlerJs("clickAllSelect(\"" + shangjiaRecordStr + "\");",2000, wv_upload);
+							}
+						});
+						break;
+					case Constant.EDIT_DETAIL:
+						SWITCH_UPLOAD_METHOD = Constant.EDIT_UPLOAD_COMPLETE;
+						handlerJs("shangjiaNow();", 1000,wv_upload);
+						break;
+					case Constant.EDIT_UPLOAD_COMPLETE:
+						shangjiaIndex++;
+						if (shangjiaIndex < xiajiaRecordList.size()) {
+							SWITCH_UPLOAD_METHOD = Constant.EDIT_DETAIL;
+							goEditDetailsUrl();
+						} else {
+							SWITCH_UPLOAD_METHOD = -1;
+						}
+						break;
+				}
+			}
 
 			super.onPageFinished(view, url);
 		}
